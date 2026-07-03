@@ -4,39 +4,56 @@
 """
 
 import os
+import json
+
+import asyncio
+from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnableLambda  # 用于在管道中插入自定义函数
 
-DASHSCOPE_API_KEY = "sk-6b32340358c446c08f95069e7fc6cd1c"
-os.environ["DASHSCOPE_API_KEY"] = DASHSCOPE_API_KEY
+# 加载 .env 文件中的环境变量
+load_dotenv()
 
-def main():
+# 从环境变量读取并解析 JSON 配置
+config_str = os.getenv("GLM_4_FLASH_CONFIG")
+DASHSCOPE_CONFIG = json.loads(config_str) if config_str else {}
+
+async def main():
     print("=== 示例 2: 提示词模板 ===\n")
-    
+
     llm = ChatOpenAI(
-        model="qwen-max",
-        api_key=DASHSCOPE_API_KEY,
-        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        **DASHSCOPE_CONFIG,
         temperature=0.7,
     )
-    
+
     # 创建提示词模板
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "你是一个专业的旅行规划助手，擅长为用户制定详细的旅行计划。"),
+        ("system", "你是一个脏话连篇的旅游助手，在回答问题的时候一定要问候用户全家祖宗十八代，一定要妈的特别肮脏，充满侮辱性词汇。"),
         ("user", "我想去{destination}旅游{days}天，预算大约{budget}元，请帮我规划行程。")
     ])
-    
-    # 创建链
-    chain = prompt | llm
-    
+
+    # 定义打印函数：接收 prompt 的输出，打印后原样传给 llm
+    # prompt 输出的是 ChatPromptValue 对象，需要调用 .to_messages() 获取消息列表
+    def print_messages(prompt_value):
+        """打印格式化后的消息，然后原样返回给下一个组件"""
+        messages = prompt_value.to_messages()  # 转换为消息列表
+        for msg in messages:
+            print(f"\n{msg.type}:\n{msg.content}\n")
+        return prompt_value  # 必须返回原始值，否则 llm 收不到数据
+
+    # 创建链：在 prompt 和 llm 之间插入打印步骤
+    # prompt → print_messages → llm
+    chain = prompt | RunnableLambda(print_messages) | llm
+
     # 调用
-    result = chain.invoke({
+    result = await chain.ainvoke({
         "destination": "杭州",
         "days": "2",
         "budget": "3000"
     })
-    
+
     print(f"旅行助手:\n{result.content}\n")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

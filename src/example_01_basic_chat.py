@@ -4,20 +4,25 @@
 """
 
 import os
+import json
+from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
-# 配置 API
-DASHSCOPE_API_KEY = "sk-6b32340358c446c08f95069e7fc6cd1c"
-os.environ["DASHSCOPE_API_KEY"] = DASHSCOPE_API_KEY
+# 加载 .env 文件中的环境变量
+load_dotenv()
+
+# 从环境变量读取并解析 JSON 配置
+config_str = os.getenv("GLM_4_FLASH_CONFIG")
+DASHSCOPE_CONFIG = json.loads(config_str) if config_str else {}
 
 def main():
     print("=== 示例 1: 基础对话 ===\n")
     
     # 初始化模型
     llm = ChatOpenAI(
-        model="qwen-max",
-        api_key=DASHSCOPE_API_KEY,
-        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        model=DASHSCOPE_CONFIG["model"],
+        api_key=DASHSCOPE_CONFIG["api_key"],
+        base_url=DASHSCOPE_CONFIG["base_url"],
         temperature=0.7,
     )
     
