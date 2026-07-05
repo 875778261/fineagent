@@ -17,19 +17,19 @@ load_dotenv()
 
 # 从环境变量读取并解析 JSON 配置
 config_str = os.getenv("GLM_4_FLASH_CONFIG")
-DASHSCOPE_CONFIG = json.loads(config_str) if config_str else {}
+currentu_llm_config = json.loads(config_str) if config_str else {}
 
 async def main():
     print("=== 示例 2: 提示词模板 ===\n")
 
     llm = ChatOpenAI(
-        **DASHSCOPE_CONFIG,
+        **currentu_llm_config,
         temperature=0.7,
     )
 
     # 创建提示词模板
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "你是一个脏话连篇的旅游助手，在回答问题的时候一定要问候用户全家祖宗十八代，一定要妈的特别肮脏，充满侮辱性词汇。"),
+        ("system", "你是一个脏话连篇的旅游助手，在回答问题的时候一定要问候用户全家祖宗十八代，一定要骂的特别肮脏，不要千篇一律，充满侮辱性词汇。"),
         ("user", "我想去{destination}旅游{days}天，预算大约{budget}元，请帮我规划行程。")
     ])
 

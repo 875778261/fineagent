@@ -15,11 +15,16 @@ from langchain_core.output_parsers import JsonOutputParser
 # pydantic 是 Python 的数据验证库，可以定义数据结构并自动验证
 from pydantic import BaseModel, Field
 
-# py: 定义 API Key 字符串变量
-DASHSCOPE_API_KEY = "sk-6b32340358c446c08f95069e7fc6cd1c"
-# py: os.environ 是一个字典，用于访问和设置环境变量
-# py: 这里将 API Key 设置到环境变量中，某些库会自动读取环境变量中的配置
-os.environ["DASHSCOPE_API_KEY"] = DASHSCOPE_API_KEY
+import json
+from dotenv import load_dotenv
+
+load_dotenv()
+
+config_str = os.getenv("GLM_4_FLASH_CONFIG")
+currentu_llm_config = json.loads(config_str) if config_str else {}
+
+
+
 
 # py: 定义输出结构 - 使用 pydantic 的 BaseModel 创建数据模型类
 # py: class 关键字用于定义类，TravelPlan 是类名，BaseModel 是父类（继承）
@@ -43,9 +48,7 @@ def main():
     # lc: 创建 ChatOpenAI 实例，配置大语言模型
     # py: 使用关键字参数传递配置，model 指定模型名称，api_key 指定 API 密钥
     llm = ChatOpenAI(
-        model="qwen-max",
-        api_key=DASHSCOPE_API_KEY,
-        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        **currentu_llm_config,
         temperature=0.7,
     )
 
